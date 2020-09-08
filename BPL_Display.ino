@@ -220,7 +220,6 @@ void drawLogo() {
     display.drawXbm(30, 0, WiFi_Logo_width, WiFi_Logo_height, WiFi_Logo_bits);
 }
 
-//Demo demos[] = {drawFontFaceDemo, drawTextFlowDemo, drawTextAlignmentDemo, drawRectDemo, drawCircleDemo, drawProgressBarDemo, drawImageDemo};
 Screen screens[] = {drawStats, drawLogo};
 int seqLength = (sizeof(screens) / sizeof(Screen));
 long timeSinceLastModeSwitch = 0;
