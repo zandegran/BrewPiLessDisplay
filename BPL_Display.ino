@@ -103,7 +103,10 @@ void WiFiStart() {
 //  WiFi.config(ip, gateway, subnet);
   while (WiFi.status() != WL_CONNECTED) {
     delay(100);
-    Serial.print("_");
+    Serial.print("_");   
+    digitalWrite(LED_BUILTIN, LOW);  
+    delay(10);    
+    digitalWrite(LED_BUILTIN, HIGH);                 
   }
   Serial.println();
   Serial.println("Done");
@@ -159,6 +162,8 @@ void setupWebsockets() {
 }
 
 void setup() {
+  // initialize digital pin LED_BUILTIN as an output.
+  pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);
   setupWifi();
   Serial.println();
@@ -220,9 +225,12 @@ void drawLogo() {
     display.drawXbm(30, 0, WiFi_Logo_width, WiFi_Logo_height, WiFi_Logo_bits);
 }
 
+//Demo demos[] = {drawFontFaceDemo, drawTextFlowDemo, drawTextAlignmentDemo, drawRectDemo, drawCircleDemo, drawProgressBarDemo, drawImageDemo};
 Screen screens[] = {drawStats, drawLogo};
 int seqLength = (sizeof(screens) / sizeof(Screen));
 long timeSinceLastModeSwitch = 0;
+
+void (* resetFunc) (void) = 0;
 
 void loop() {
   // Poll websockets
@@ -245,6 +253,6 @@ void loop() {
   delay(10);
   //Reconnect on lost WiFi connection
   if (WiFi.status() != WL_CONNECTED) {
-    WiFiStart();
+    resetFunc();
   }
 }
