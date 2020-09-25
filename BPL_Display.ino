@@ -222,7 +222,7 @@ void drawGraphics() {
 void drawLogo() {
     // see http://blog.squix.org/2015/05/esp8266-nodemcu-how-to-create-xbm.html
     // on how to create xbm files
-    display.drawXbm(30, 0, WiFi_Logo_width, WiFi_Logo_height, WiFi_Logo_bits);
+    display.drawXbm(30, 0, logo_width, logo_height, logo_bits);
 }
 
 //Demo demos[] = {drawFontFaceDemo, drawTextFlowDemo, drawTextAlignmentDemo, drawRectDemo, drawCircleDemo, drawProgressBarDemo, drawImageDemo};
