@@ -91,7 +91,7 @@ float frt = 0;
 float bs = 0;
 float bt = 0;
 int sig = 0;
-const char* md = "o";
+String md = "o";
 int st = 0;
 const char* messageText = "";
 
@@ -100,7 +100,7 @@ void WiFiStart() {
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
-//  WiFi.config(ip, gateway, subnet);
+//  WiFi.config(ip, gateway, subnet);  // Uncomment this to use static IP
   while (WiFi.status() != WL_CONNECTED) {
     delay(100);
     Serial.print("_");   
@@ -132,26 +132,27 @@ void setValues() {
   bt /= 100;
   sig = doc["rssi"];
   sig *= -1;
-  md = doc["md"];
-  md = sizeof(md) > 0 ? md : "o";
+  const char* mode = doc["md"];
+  md = String(mode);
   st = doc["st"];
   messageText = doc["sl"];
+  Serial.println(md);
 }
 
 void onMessageCallback(WebsocketsMessage message) {
-    Serial.println(message.data());
-    if (sizeof(message.data()) > 0 && message.data()[0] == 'A')  {
-      String input = message.data().substring(2);
-      DeserializationError error = deserializeJson(doc, input);
-      if (error) {
-        Serial.print(F("deserializeJson() failed: "));
-        Serial.println(error.c_str());
-        messageText = error.c_str();
-      }
-      else {
-        setValues();
-      }
+  Serial.println(message.data());
+  if (sizeof(message.data()) > 0 && message.data()[0] == 'A')  {
+    String input = message.data().substring(2);
+    DeserializationError error = deserializeJson(doc, input);
+    if (error) {
+      Serial.print(F("deserializeJson() failed: "));
+      Serial.println(error.c_str());
+      messageText = error.c_str();
     }
+    else {
+      setValues();
+    }
+  }
 }
 
 void setupWebsockets() {
@@ -179,27 +180,27 @@ void setup() {
 }
 
 void drawStats() {
-    // create more fonts at http://oleddisplay.squix.ch/
-    display.setFont(ArialMT_Plain_16);
-    display.setTextAlignment(TEXT_ALIGN_LEFT);
-    display.drawString(0, 0,  String("    : ") + (bt < -9 ? String("--") : (String(bt) + String(" º"))));
-    display.drawXbm(0, 0, beer_width, beer_height, beer_bits);
-    display.drawString(0, 16, String("    : ") + (frt < -9 ? String("--") : (String(frt) + String(" º"))));
-    display.drawXbm(2, 16, fridge_width, fridge_height, fridge_bits);
-    display.setFont(ArialMT_Plain_10);
-    String mode = "OFF";   
-    if (strcmp(md, "f") == 0) {
-      mode = String("Target fridge: ") + String(frs) + String(" º");
-    }
-    if (strcmp(md, "b") == 0) {
-      mode = String("Target beer: ") + String(bs) + String(" º");
-    }
-    if (strcmp(md, "p") == 0) {
-      mode = String("Beer profile mode");
-    }
-    display.drawString(0, 38, mode);
-    display.drawString(0, 52, messageText);
-    drawGraphics();
+  // create more fonts at http://oleddisplay.squix.ch/
+  display.setFont(ArialMT_Plain_16);
+  display.setTextAlignment(TEXT_ALIGN_LEFT);
+  display.drawString(0, 0,  String("    : ") + (bt < -9 ? String("--") : (String(bt) + String(" º"))));
+  display.drawXbm(0, 0, beer_width, beer_height, beer_bits);
+  display.drawString(0, 16, String("    : ") + (frt < -9 ? String("--") : (String(frt) + String(" º"))));
+  display.drawXbm(2, 16, fridge_width, fridge_height, fridge_bits);
+  display.setFont(ArialMT_Plain_10);
+  String mode = "OFF";   
+  if (md.equals(String("f"))) {
+    mode = String("Target fridge: ") + String(frs) + String(" º");
+  }
+  if (md.equals(String("b"))) {
+    mode = String("Target beer: ") + String(bs) + String(" º");
+  }
+  if (md.equals(String("p"))) {
+    mode = String("Beer profile mode");
+  }
+  display.drawString(0, 38, mode);
+  display.drawString(0, 52, messageText);
+  drawGraphics();
 }
 
 void drawGraphics() {
@@ -225,7 +226,6 @@ void drawLogo() {
     display.drawXbm(30, 0, logo_width, logo_height, logo_bits);
 }
 
-//Demo demos[] = {drawFontFaceDemo, drawTextFlowDemo, drawTextAlignmentDemo, drawRectDemo, drawCircleDemo, drawProgressBarDemo, drawImageDemo};
 Screen screens[] = {drawStats, drawLogo};
 int seqLength = (sizeof(screens) / sizeof(Screen));
 long timeSinceLastModeSwitch = 0;
@@ -237,7 +237,7 @@ void loop() {
   client.poll();
   // clear the display
   display.clear();
-  // draw the current demo method
+  // draw the current screen method
   screens[currentScreen]();
 
   display.setTextAlignment(TEXT_ALIGN_RIGHT);
