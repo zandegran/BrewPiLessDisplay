@@ -84,7 +84,6 @@ SSD1306Wire  display(0x3c, D1, D2);
 typedef void (*Screen)(void);
 
 int currentScreen = 0;
-int counter = 1;
 
 float frs = 0;
 float frt = 0;
@@ -136,7 +135,6 @@ void setValues() {
   md = String(mode);
   st = doc["st"];
   messageText = doc["sl"];
-  Serial.println(md);
 }
 
 void onMessageCallback(WebsocketsMessage message) {
@@ -233,8 +231,14 @@ long timeSinceLastModeSwitch = 0;
 void (* resetFunc) (void) = 0;
 
 void loop() {
-  // Poll websockets
-  client.poll();
+  if (client.available()) {
+    // Poll websockets
+    client.poll();
+  }
+  else {
+    // Reconnect
+    client.connect(websockets_server);
+  }
   // clear the display
   display.clear();
   // draw the current screen method
@@ -249,7 +253,6 @@ void loop() {
     currentScreen = (currentScreen + 1)  % seqLength;
     timeSinceLastModeSwitch = millis();
   }
-  counter++;
   delay(10);
   //Reconnect on lost WiFi connection
   if (WiFi.status() != WL_CONNECTED) {
